@@ -1,5 +1,5 @@
 # Marlin-Configurator
-""Overview""
+**Overview**
 The Marlin Configurator is a user-friendly graphical application designed for configuring Marlin firmware for 3D printers.\
 This tool simplifies the process of selecting and modifying configuration files,\
 allowing users to easily input printer settings and save their updates.\
