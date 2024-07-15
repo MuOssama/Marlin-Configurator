@@ -15,4 +15,4 @@ the Marlin Configurator streamlines the setup process for both novice and experi
 - **File Management**: Load, edit, and save configuration files seamlessly.
 
 ## Requirements
-- Marlin v1.9+
+- Marlin v1.9+ (older may not work)
