@@ -13,4 +13,3 @@ the Marlin Configurator streamlines the setup process for both novice and experi
 - **Printer Type Selection**: Choose from a variety of printer types and configurations.
 - **Parameter Adjustment**: Customize motor settings, extruder configurations, and more.
 - **File Management**: Load, edit, and save configuration files seamlessly.
- 
