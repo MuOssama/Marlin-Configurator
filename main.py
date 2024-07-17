@@ -1,8 +1,9 @@
 from tkinter import filedialog, messagebox, ttk
 from tkinter import *
-from PIL import Image, ImageTk
+from PIL import *
 from config import *
 from tkinter.ttk import Combobox
+import re
 
 
 
@@ -14,7 +15,6 @@ def select_file():
     if file_path:
         read_file(file_path)
         file_selected = True  # Set the flag to True when a file is selected
-
 
 
 def read_file(file_path):
@@ -80,6 +80,171 @@ def line_exists(line_to_check, portions=2):
 
     
     
+def prefill_input_fields():
+    global content
+    
+    # Extract the 3D printer name
+    author_match = re.search(r'#define STRING_CONFIG_H_AUTHOR "(.*?)"', content)
+    if author_match:
+        name_entry.delete(0, END)
+        name_entry.insert(0, author_match.group(1))
+        
+    # Extract the motherboard
+    motherboard_match = re.search(r'#define MOTHERBOARD (.+)', content)
+    if motherboard_match:
+        motherboard_entry.delete(0, END)
+        motherboard_entry.insert(0, motherboard_match.group(1).strip())
+
+    # Extract driver types
+    driver_names = ["X_DRIVER_TYPE", "Y_DRIVER_TYPE", "Z_DRIVER_TYPE", "E0_DRIVER_TYPE"]
+    for driver in driver_names:
+        match = re.search(rf'#define {driver} (.+)', content)
+        if match:
+            driver_value = match.group(1).strip()
+            if driver == "X_DRIVER_TYPE":
+                x_driver_var.set(driver_value)
+            elif driver == "Y_DRIVER_TYPE":
+                y_driver_var.set(driver_value)
+            elif driver == "Z_DRIVER_TYPE":
+                z_driver_var.set(driver_value)
+            elif driver == "E0_DRIVER_TYPE":
+                e0_driver_var.set(driver_value)
+
+    # Extract temperature sensors
+    nozzle_temp_match = re.search(r'#define TEMP_SENSOR_0 (.*?)(?:\s|//)', content)
+    if nozzle_temp_match:
+        nozzle_temp_entry.delete(0, END)
+        nozzle_temp_entry.insert(0, nozzle_temp_match.group(1))
+
+    bed_temp_match = re.search(r'#define TEMP_SENSOR_BED (.*?)(?:\s|//)', content)
+    if bed_temp_match:
+        bed_temp_entry.delete(0, END)
+        bed_temp_entry.insert(0, bed_temp_match.group(1))
+
+
+    # Extract endstop inversion values
+    endstop_names = [
+        "X_MIN_ENDSTOP_INVERTING", "Y_MIN_ENDSTOP_INVERTING", "Z_MIN_ENDSTOP_INVERTING",
+        "X_MAX_ENDSTOP_INVERTING", "Y_MAX_ENDSTOP_INVERTING", "Z_MAX_ENDSTOP_INVERTING"
+    ]
+    
+    for endstop in endstop_names:
+        match = re.search(rf'#define {endstop} (\S+)', content)
+        if match:
+            value = match.group(1).strip().lower()  # Convert to lowercase for comparison..
+            if endstop == "X_MIN_ENDSTOP_INVERTING":
+                x_endstop_var.set(value)  # Set the variable directly           
+            elif endstop == "Y_MIN_ENDSTOP_INVERTING":
+                y_endstop_var.set(value)
+            elif endstop == "Z_MIN_ENDSTOP_INVERTING":
+                z_endstop_var.set(value)
+            elif endstop == "X_MAX_ENDSTOP_INVERTING":
+                # You can create and handle a variable for X_MAX if needed
+                pass
+            elif endstop == "Y_MAX_ENDSTOP_INVERTING":
+                # Create and handle a variable for Y_MAX if needed
+                pass
+            elif endstop == "Z_MAX_ENDSTOP_INVERTING":
+                # Create and handle a variable for Z_MAX if needed
+                pass
+
+
+    # Extract motor inversion values
+    motor_inversion_names = ["INVERT_X_DIR", "INVERT_Y_DIR", "INVERT_Z_DIR"]
+    for motor_inv in motor_inversion_names:
+        match = re.search(rf'#define {motor_inv} (.+)', content)
+        if match:
+            value = match.group(1).strip()
+            if motor_inv == "INVERT_X_DIR":
+                x_motor_inv_var.set(value)
+            elif motor_inv == "INVERT_Y_DIR":
+                y_motor_inv_var.set(value)
+            elif motor_inv == "INVERT_Z_DIR":
+                z_motor_inv_var.set(value)
+
+    # Extract home direction values
+    home_direction_names = ["X_HOME_DIR", "Y_HOME_DIR", "Z_HOME_DIR"]
+    for home_dir in home_direction_names:
+        match = re.search(rf'#define {home_dir} (.+)', content)
+        if match:
+            value = match.group(1).strip()
+            if home_dir == "X_HOME_DIR":
+                x_home_direction_var.set("min" if value == "-1" else "max")
+            elif home_dir == "Y_HOME_DIR":
+                y_home_direction_var.set("min" if value == "-1" else "max")
+            elif home_dir == "Z_HOME_DIR":
+                z_home_direction_var.set("min" if value == "-1" else "max")
+
+                
+    # Extract printer volume values
+    printer_size_names = ["X_BED_SIZE", "Y_BED_SIZE", "Z_MAX_POS"]
+    for printer_size in printer_size_names:
+        match = re.search(rf'#define {printer_size} (.+)', content)
+        if match:
+            value = match.group(1).strip()
+            if printer_size == "X_BED_SIZE":
+                x_bed_size_entry.delete(0, END)
+                x_bed_size_entry.insert(0, match.group(1))
+            elif printer_size == "Y_BED_SIZE":
+                y_bed_size_entry.delete(0, END)
+                y_bed_size_entry.insert(0, match.group(1))
+            elif printer_size == "Z_MAX_POS":
+                z_max_height_entry.delete(0, END)
+                z_max_height_entry.insert(0, match.group(1))
+                
+    # Extract LCD configuration
+    lcd_options = [
+        "NONE",
+        "REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER",
+        "REPRAP_DISCOUNT_SMART_CONTROLLER",
+        "REPRAPWORLD_GRAPHICAL_LCD",
+        "MKS_MINI_12864",
+        "MKS_MINI_12864_V3",
+        "MKS_TS35_V2_0",
+        "MKS_ROBIN_TFT24",
+        "MKS_ROBIN_TFT28",
+        "MKS_ROBIN_TFT32",
+        "MKS_ROBIN_TFT35",
+        "MKS_ROBIN_TFT43"
+    ]
+    
+    for option in lcd_options:
+        if re.search(rf'#define {option}', content):
+            lcd_combobox.set(option)  # Set the combobox to the found option
+            break  # Exit once the first match is found
+
+
+  # Extract probe configuration
+    if re.search(r'^\s*#define\s+BLTOUCH\s*$', content, re.MULTILINE):
+            probe_combobox.current(1)  # Set the combobox to the found probe type
+    else:
+            probe_combobox.set("Not recognised")  # Set the combobox to the found probe type
+
+    # Extract probing points
+    probing_points_match = re.search(r'#define GRID_MAX_POINTS_X (\d+)', content)
+    if probing_points_match:
+        probing_points_entry.config(state="normal")  # Enable entry if points are found
+        probing_points_entry.delete(0, END)
+        probing_points_entry.insert(0, probing_points_match.group(1))
+    else:
+        probing_points_entry.config(state="disabled")  # Disable entry if no points are found
+
+    # Additional configurations based on selected probe type
+    if probe_combobox.get() == "BlTouch":
+        z_endstop_match = re.search(r'#define Z_MIN_ENDSTOP_INVERTING (.+)', content)
+        if z_endstop_match:
+            z_endstop_value = z_endstop_match.group(1).strip().lower()
+            z_endstop_var.set(z_endstop_value)
+            if z_endstop_value == "true":
+                z_endstop_true.select()
+            else:
+                z_endstop_false.select()
+
+    # Update UI based on selected probe
+    on_probe_select(None)  # Trigger the selection function to update UI state
+    
+    
+            
 def update_all_inputs():
     # Call functions to get the inputs
     get_name_input()
@@ -104,6 +269,7 @@ def on_probe_select(event):
         modify_configuration_file("//#define AUTO_BED_LEVELING_BILINEAR", "#define AUTO_BED_LEVELING_BILINEAR")
         modify_configuration_file("//#define Z_SAFE_HOMING", "#define Z_SAFE_HOMING")
         modify_configuration_file("#define Z_MIN_PROBE_ENDSTOP_INVERTING true", "#define Z_MIN_PROBE_ENDSTOP_INVERTING false")
+        modify_configuration_file("##define Z_MIN_ENDSTOP_INVERTING", "#define Z_MIN_ENDSTOP_INVERTING false")
         modify_configuration_file("//#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN", "#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN")
         modify_configuration_file("//#define LCD_BED_LEVELING", "#define LCD_BED_LEVELING")
         print(selected_probe)
@@ -177,7 +343,7 @@ def get_endstop_inputs():
     modify_configuration_file("#define X_MIN_ENDSTOP_INVERTING", f"#define X_MIN_ENDSTOP_INVERTING {x_endstop}")
     modify_configuration_file("#define Y_MIN_ENDSTOP_INVERTING", f"#define Y_MIN_ENDSTOP_INVERTING {y_endstop}")
     modify_configuration_file("#define Z_MIN_ENDSTOP_INVERTING", f"#define Z_MIN_ENDSTOP_INVERTING {z_endstop}")
-    
+
 # Function to get motor inversion inputs
 def get_motor_inversion_inputs():
     x_motor_inv = x_motor_inv_var.get()
@@ -191,11 +357,12 @@ def get_motor_inversion_inputs():
 # Function to get LCD input
 def get_lcd_input():
     lcd_option = lcd_combobox.get()
-    if lcd_option != "NONE":
-        modify_configuration_file("//#define SDSUPPORT", "#define SDSUPPORT")
-        modify_configuration_file("//#define INDIVIDUAL_AXIS_HOMING_MENU", "#define INDIVIDUAL_AXIS_HOMING_MENU")
-        modify_configuration_file("//#define INDIVIDUAL_AXIS_HOMING_SUBMENU", "#define INDIVIDUAL_AXIS_HOMING_SUBMENU")
+    modify_configuration_file("//#define SDSUPPORT", "#define SDSUPPORT")
+    modify_configuration_file("//#define INDIVIDUAL_AXIS_HOMING_MENU", "#define INDIVIDUAL_AXIS_HOMING_MENU")
+    modify_configuration_file("//#define INDIVIDUAL_AXIS_HOMING_SUBMENU", "#define INDIVIDUAL_AXIS_HOMING_SUBMENU")
 
+    if lcd_option == "NONE":
+        pass
     elif lcd_option == "REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER":
         modify_configuration_file("//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER", "#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER")
     elif lcd_option == "REPRAP_DISCOUNT_SMART_CONTROLLER":
@@ -218,6 +385,7 @@ def get_lcd_input():
         modify_configuration_file("//#define MKS_ROBIN_TFT35", "#define MKS_ROBIN_TFT35")
     elif lcd_option == "MKS_ROBIN_TFT43":
         modify_configuration_file("//#define MKS_ROBIN_TFT43", "#define MKS_ROBIN_TFT43")
+
     
 # Function to get printer dimensions
 def get_printer_size_inputs():
@@ -562,7 +730,7 @@ offsetIncM += 1
 
 x_axis_right =screenWidth - 270
 
-
+prefill_input_fields()
 
 # Start the periodic updates
 update_all_inputs()  # Call it once to kick off the process
